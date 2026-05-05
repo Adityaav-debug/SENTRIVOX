@@ -1,5 +1,5 @@
 import Fastify from "fastify";
-import connectDB from "./config/db";
+import { connectDB } from "./config/db";
 
 // Import your routes here
 // Example:
