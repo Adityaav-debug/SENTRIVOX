@@ -93,14 +93,12 @@ async function startServer() {
 
         const PORT = Number(process.env.PORT || 8080);
 
-        const address = await app.listen({
+        await app.listen({
             port: PORT,
             host: "0.0.0.0"
         });
 
-        console.log(
-            `Sentrivox backend running at ${address}`
-        );
+        console.log(`Sentrivox backend running on port ${PORT}`);
 
     } catch (error) {
         console.error(error);
