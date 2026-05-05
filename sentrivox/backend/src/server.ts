@@ -42,13 +42,7 @@ async function startServer() {
         // Routes
         await eventRoutes(app);
 
-        // Health check for Railway
-        app.get("/health", async () => {
-            return {
-                status: "ok",
-                service: "Sentrivox"
-            };
-        });
+
 
         // Capture events
         app.post("/events", async (request, reply) => {
@@ -205,6 +199,14 @@ async function startServer() {
                     error: "Failed to generate alerts"
                 });
             }
+        });
+
+        // Health check for Railway
+        app.get("/health", async () => {
+          return {
+            status: "ok",
+            service: "Sentrivox"
+          };
         });
 
         // Railway deployment config
