@@ -62,9 +62,10 @@ app.post("/events", async (request, reply) => {
             const { sessionId } = request.params as { sessionId: string };
             const events = await AgentEvent.find({ sessionId });
             const loopAlert = detectLoop(sessionId, events);
-            const tokenAlert = detectTokenBurn(sessionId, events);
-
-            const latencyAlert = detectLatencySpike(sessionId, events);
+            const event = events[events.length - 1];
+            const tokenAlert = detectTokenBurn(event);
+            const retryAlert = detectRetryStorm(event);
+            const latencyAlert = detectLatencySpike(event);
             const toolAlert = detectToolHotspot(sessionId, events);
             const predictiveAlert = detectPredictiveFailure(sessionId, events);
             const rootCause = detectRootCause(events);
