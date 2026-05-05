@@ -1,7 +1,6 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "type": "commonjs",
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js"
