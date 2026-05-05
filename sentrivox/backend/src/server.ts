@@ -24,18 +24,13 @@ const app = Fastify({
 async function startServer() {
     try {
         await connectDB();
-        console.log("MongoDB connected");
 
         await app.register(cors);
 
-        // Health route
         app.get("/health", async () => {
-            return {
-                status: "ok"
-            };
+            return { status: "ok" };
         });
 
-        // Existing routes
         await eventRoutes(app);
 
         // Events endpoint
