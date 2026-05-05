@@ -4,25 +4,24 @@ import { detectRetryStorm } from "../rules/retryStormDetector";
 import { detectTokenBurn } from "../rules/tokenBurnDetector";
 
 import { FastifyInstance } from "fastify";
-
 import { AgentEvent } from "../models/AgentEvent";
 import { detectLoop } from "../rules/loopDetector";
 
 export async function eventRoutes(
   fastify: FastifyInstance
 ) {
-  fastify.post("/api/events", async (request, reply) => {
+  fastify.post("/", async (request, reply) => {
     try {
       const eventData = request.body as any;
+
       const event = await AgentEvent.create(eventData);
 
-      // Loop Detection Logic
-      const sessionEvents = await AgentEvent.find({ 
-        sessionId: eventData.sessionId 
+      const sessionEvents = await AgentEvent.find({
+        sessionId: eventData.sessionId
       });
-      
+
       const loopAlert = detectLoop(
-        eventData.sessionId, 
+        eventData.sessionId,
         sessionEvents as any
       );
 
@@ -35,6 +34,7 @@ export async function eventRoutes(
         data: event,
         alert: loopAlert
       };
+
     } catch (error) {
       reply.status(500);
 
