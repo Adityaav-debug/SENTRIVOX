@@ -16,6 +16,7 @@ const latencySpikeDetector_1 = require("./rules/latencySpikeDetector");
 const toolHotspotDetector_1 = require("./rules/toolHotspotDetector");
 const predictiveFailureDetector_1 = require("./rules/predictiveFailureDetector");
 const rootCauseDetector_1 = require("./rules/rootCauseDetector");
+const recommendationEngine_1 = require("./rules/recommendationEngine");
 dotenv_1.default.config();
 const app = (0, fastify_1.default)();
 async function startServer() {
@@ -42,6 +43,17 @@ async function startServer() {
             });
         }
     });
+    app.get("/sessions", async (request, reply) => {
+        try {
+            const sessions = await AgentEvent_1.AgentEvent.distinct("sessionId");
+            return { sessions };
+        }
+        catch (error) {
+            console.error(error);
+            reply.status(500);
+            return { error: "Failed to fetch sessions" };
+        }
+    });
     app.get("/sessions/:sessionId/alerts", async (request, reply) => {
         try {
             const { sessionId } = request.params;
@@ -66,10 +78,29 @@ async function startServer() {
                 alerts.push(toolAlert);
             if (predictiveAlert)
                 alerts.push(predictiveAlert);
+            const recommendation = (0, recommendationEngine_1.generateRecommendation)(alerts);
+            const toolCounts = {};
+            events.forEach(e => {
+                const name = e.toolName || "unknown";
+                toolCounts[name] = (toolCounts[name] || 0) + 1;
+            });
+            const bottleneck = Object.keys(toolCounts).reduce((a, b) => toolCounts[a] > toolCounts[b] ? a : b, "none");
+            const avgLatency = events.length > 0
+                ? (events.reduce((sum, e) => sum + (e.latency || 0), 0) / events.length / 1000).toFixed(2) + "s"
+                : "0s";
+            const failureRate = events.length > 0
+                ? ((events.filter(e => !e.success).length / events.length) * 100).toFixed(1) + "%"
+                : "0%";
             return {
                 sessionId,
                 alerts,
-                rootCause
+                rootCause,
+                recommendation,
+                summary: {
+                    bottleneck,
+                    avgLatency,
+                    failureRate
+                }
             };
         }
         catch (error) {

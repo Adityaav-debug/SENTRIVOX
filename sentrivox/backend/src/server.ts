@@ -80,12 +80,13 @@ if (predictiveAlert) alerts.push(predictiveAlert);
 
             const toolCounts: any = {};
             events.forEach(e => {
-                toolCounts[e.toolName] = (toolCounts[e.toolName] || 0) + 1;
+                const name = e.toolName || "unknown";
+                toolCounts[name] = (toolCounts[name] || 0) + 1;
             });
             const bottleneck = Object.keys(toolCounts).reduce((a, b) => toolCounts[a] > toolCounts[b] ? a : b, "none");
             
             const avgLatency = events.length > 0 
-                ? (events.reduce((sum, e) => sum + e.latency, 0) / events.length / 1000).toFixed(2) + "s"
+                ? (events.reduce((sum, e) => sum + (e.latency || 0), 0) / events.length / 1000).toFixed(2) + "s"
                 : "0s";
             
             const failureRate = events.length > 0
