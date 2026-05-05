@@ -10,8 +10,8 @@ async function start() {
   const PORT = Number(process.env.PORT) || 8080;
 
   await app.listen({
-    host: "0.0.0.0",
-    port: PORT
+    port: PORT,
+    host: "0.0.0.0"
   });
 
   console.log(`Running on ${PORT}`);
