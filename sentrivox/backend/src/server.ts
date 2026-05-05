@@ -113,13 +113,11 @@ async function startServer() {
                 );
 
                 const retryAlert = detectRetryStorm(
-                    latestEvent,
-                    events
+                    latestEvent
                 );
 
                 const latencyAlert = detectLatencySpike(
-                    latestEvent,
-                    events
+                    latestEvent
                 );
 
                 const toolAlert = detectToolHotspot(
