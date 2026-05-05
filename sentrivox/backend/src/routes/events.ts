@@ -1,4 +1,10 @@
-import { FastifyInstance } from "fastify";
+// Import new detectors
+import { detectLatencySpike } from "../rules/latencySpikeDetector";
+import { detectRetryStorm } from "../rules/retryStormDetector";
+import { detectTokenBurn } from "../rules/tokenBurnDetector";
+
+// ... existing code remains unchanged
+
 import { AgentEvent } from "../models/AgentEvent";
 import { detectLoop } from "../rules/loopDetector";
 

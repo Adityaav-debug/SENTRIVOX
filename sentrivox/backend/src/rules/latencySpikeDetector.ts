@@ -1,24 +1,11 @@
-export function detectLatencySpike(sessionId: string, events: any[]) {
-  const sessionEvents = events.filter(
-    (event) => event.sessionId === sessionId
-  );
+export function detectLatencySpike(event: any) {
+  if (!event.latency) return null;
 
-  if (sessionEvents.length === 0) {
-    return null;
-  }
-
-  const totalLatency = sessionEvents.reduce(
-    (sum, event) => sum + (event.latency || 0),
-    0
-  );
-
-  const averageLatency = totalLatency / sessionEvents.length;
-
-  if (averageLatency > 3000) {
+  if (event.latency > 3000) {
     return {
-      alert: "Latency spike detected",
-      severity: "medium",
-      averageLatency
+      type: "LATENCY_SPIKE",
+      severity: "HIGH",
+      message: `Latency spike detected: ${event.latency}ms`
     };
   }
 

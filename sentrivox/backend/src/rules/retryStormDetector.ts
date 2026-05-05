@@ -1,17 +1,11 @@
-export function detectRetryStorm(sessionId: string, events: any[]) {
-  const failedEvents = events.filter(
-    (event) =>
-      event.sessionId === sessionId &&
-      event.success === false
-  );
+export function detectRetryStorm(event: any) {
+  if (event.retryCount === undefined || event.retryCount === null) return null;
 
-  const failedCount = failedEvents.length;
-
-  if (failedCount >= 3) {
+  if (event.retryCount >= 3) {
     return {
-      alert: "Retry storm detected",
-      severity: "critical",
-      failedCount
+      type: "RETRY_STORM",
+      severity: "MEDIUM",
+      message: `${event.retryCount} retries detected`
     };
   }
 
