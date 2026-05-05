@@ -204,12 +204,10 @@ async function startServer() {
         // Health check for Railway
         app.get("/health", async () => {
           return {
-            status: "ok",
-            service: "Sentrivox"
+            status: "ok"
           };
         });
 
-        // Railway deployment config
         const PORT = Number(process.env.PORT) || 8080;
 
         await app.listen({
