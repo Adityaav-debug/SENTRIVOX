@@ -63,7 +63,7 @@ app.post("/events", async (request, reply) => {
             const events = await AgentEvent.find({ sessionId });
             const loopAlert = detectLoop(sessionId, events);
             const tokenAlert = detectTokenBurn(sessionId, events);
-            const retryAlert = detectRetryStorm(sessionId, events);
+
             const latencyAlert = detectLatencySpike(sessionId, events);
             const toolAlert = detectToolHotspot(sessionId, events);
             const predictiveAlert = detectPredictiveFailure(sessionId, events);

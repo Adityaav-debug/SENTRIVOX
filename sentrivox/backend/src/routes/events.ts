@@ -3,7 +3,7 @@ import { detectLatencySpike } from "../rules/latencySpikeDetector";
 import { detectRetryStorm } from "../rules/retryStormDetector";
 import { detectTokenBurn } from "../rules/tokenBurnDetector";
 
-// ... existing code remains unchanged
+import { FastifyInstance } from "fastify";
 
 import { AgentEvent } from "../models/AgentEvent";
 import { detectLoop } from "../rules/loopDetector";
