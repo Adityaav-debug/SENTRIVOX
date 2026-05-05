@@ -201,18 +201,17 @@ async function startServer() {
             }
         });
 
-        // Health check for Railway
-        app.get("/health", async () => {
-          return {
-            status: "ok"
-          };
-        });
-
         const PORT = Number(process.env.PORT) || 8080;
 
+        // Health route
+        app.get("/health", async () => {
+          return { status: "ok" };
+        });
+
+        // IMPORTANT: await + host
         await app.listen({
-          port: PORT,
-          host: "0.0.0.0"
+          host: "0.0.0.0",
+          port: PORT
         });
 
         console.log(`Sentrivox backend running on port ${PORT}`);
