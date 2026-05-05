@@ -7,7 +7,9 @@ app.get("/health", async () => {
 });
 
 async function start() {
-  const PORT = Number(process.env.PORT) || 8080;
+  const PORT = Number(process.env.PORT);
+
+  console.log("Railway PORT =", process.env.PORT);
 
   await app.listen({
     port: PORT,
