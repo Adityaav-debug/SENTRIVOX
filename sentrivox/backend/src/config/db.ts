@@ -8,9 +8,12 @@ export const connectDB = async () => {
       throw new Error("MONGODB_URI missing");
     }
 
-    await mongoose.connect(mongoUri);
+    // Force MongoDB to use sentrivox database
+    await mongoose.connect(mongoUri, {
+      dbName: "sentrivox"
+    });
 
-    console.log("MongoDB connected");
+    console.log("MongoDB connected to sentrivox");
   } catch (error) {
     console.error("Database connection failed:", error);
     process.exit(1);
