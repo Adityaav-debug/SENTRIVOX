@@ -1,38 +1,34 @@
 import Fastify from "fastify";
 import { connectDB } from "./config/db";
-
-// Import your routes here
-// Example:
-// import agentRoutes from "./routes/agentRoutes";
-// import telemetryRoutes from "./routes/telemetryRoutes";
+import { eventRoutes } from "./routes/events";
 
 const app = Fastify({
     logger: true
 });
 
-// Health check route
+// Health check
 app.get("/health", async () => {
     return { status: "ok" };
 });
 
 async function start() {
     try {
-        // Connect database
+        // Connect MongoDB
         await connectDB();
         console.log("MongoDB connected");
 
-        // Register your routes here
-        // Example:
-        // app.register(agentRoutes, { prefix: "/api/agents" });
-        // app.register(telemetryRoutes, { prefix: "/api/telemetry" });
+        // Register routes
+        app.register(eventRoutes, {
+            prefix: "/api/events"
+        });
 
         const PORT = Number(process.env.PORT);
 
         console.log("Railway PORT =", process.env.PORT);
 
         await app.listen({
-            port: PORT,
-            host: "0.0.0.0"
+            host: "0.0.0.0",
+            port: PORT
         });
 
         console.log(`Sentrivox backend running on port ${PORT}`);
