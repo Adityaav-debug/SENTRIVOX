@@ -24,16 +24,24 @@ export default function SentrivoxDashboard() {
   const [alerts, setAlerts] = useState<any[]>([]);
   const [recommendation, setRecommendation] = useState<any>(null);
   const [alertData, setAlertData] = useState<any>(null);
+  const [sessions, setSessions] = useState<string[]>([]);
+  const [currentSession, setCurrentSession] = useState<string>("loop-test-001");
 
   useEffect(() => {
-    fetch("http://localhost:5000/sessions/loop-test-001/alerts")
+    fetch("http://localhost:5000/sessions")
+      .then((res) => res.json())
+      .then((data) => setSessions(data.sessions || []));
+  }, []);
+
+  useEffect(() => {
+    fetch(`http://localhost:5000/sessions/${currentSession}/alerts`)
       .then((res) => res.json())
       .then((data) => {
         setAlerts(data.alerts || []);
         setRecommendation(data.recommendation || null);
         setAlertData(data);
       });
-  }, []);
+  }, [currentSession]);
 
   const predictiveAlert = alerts.find(
     (alert) => alert.alert === "Agent likely to fail soon"
@@ -77,8 +85,20 @@ export default function SentrivoxDashboard() {
             </p>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-full px-5 py-2 text-sm">
-            ● Monitoring 42 live agents
+          <div className="flex items-center space-x-4">
+            <div className="bg-slate-900 border border-slate-800 rounded-full px-5 py-2 text-sm">
+              ● Monitoring {sessions.length} active agents
+            </div>
+
+            <select 
+              value={currentSession}
+              onChange={(e) => setCurrentSession(e.target.value)}
+              className="bg-slate-900 border border-slate-800 rounded-full px-5 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              {sessions.map(s => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -211,17 +231,17 @@ export default function SentrivoxDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <p className="text-slate-400 text-sm">Primary Tool Bottleneck</p>
-              <p className="text-xl font-semibold mt-2">search</p>
+              <p className="text-xl font-semibold mt-2">{alertData?.summary?.bottleneck || "none"}</p>
             </div>
 
             <div>
               <p className="text-slate-400 text-sm">Average Session Latency</p>
-              <p className="text-xl font-semibold mt-2">4.58s</p>
+              <p className="text-xl font-semibold mt-2">{alertData?.summary?.avgLatency || "0s"}</p>
             </div>
 
             <div>
               <p className="text-slate-400 text-sm">Failure Rate</p>
-              <p className="text-xl font-semibold mt-2">13.2%</p>
+              <p className="text-xl font-semibold mt-2">{alertData?.summary?.failureRate || "0%"}</p>
             </div>
           </div>
         </div>

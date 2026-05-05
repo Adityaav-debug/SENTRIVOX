@@ -11,6 +11,7 @@ import { detectLatencySpike } from "./rules/latencySpikeDetector";
 import { detectToolHotspot } from "./rules/toolHotspotDetector";
 import { detectPredictiveFailure } from "./rules/predictiveFailureDetector";
 import { detectRootCause } from "./rules/rootCauseDetector";
+import { generateRecommendation } from "./rules/recommendationEngine";
 
 dotenv.config();
 
@@ -45,6 +46,17 @@ app.post("/events", async (request, reply) => {
   }
 });
 
+    app.get("/sessions", async (request, reply) => {
+        try {
+            const sessions = await AgentEvent.distinct("sessionId");
+            return { sessions };
+        } catch (error) {
+            console.error(error);
+            reply.status(500);
+            return { error: "Failed to fetch sessions" };
+        }
+    });
+
     app.get("/sessions/:sessionId/alerts", async (request, reply) => {
         try {
             const { sessionId } = request.params as { sessionId: string };
@@ -64,10 +76,32 @@ app.post("/events", async (request, reply) => {
             if (toolAlert) alerts.push(toolAlert);
 if (predictiveAlert) alerts.push(predictiveAlert);
 
+            const recommendation = generateRecommendation(alerts);
+
+            const toolCounts: any = {};
+            events.forEach(e => {
+                toolCounts[e.toolName] = (toolCounts[e.toolName] || 0) + 1;
+            });
+            const bottleneck = Object.keys(toolCounts).reduce((a, b) => toolCounts[a] > toolCounts[b] ? a : b, "none");
+            
+            const avgLatency = events.length > 0 
+                ? (events.reduce((sum, e) => sum + e.latency, 0) / events.length / 1000).toFixed(2) + "s"
+                : "0s";
+            
+            const failureRate = events.length > 0
+                ? ((events.filter(e => !e.success).length / events.length) * 100).toFixed(1) + "%"
+                : "0%";
+
             return {
                 sessionId,
                 alerts,
-                rootCause
+                rootCause,
+                recommendation,
+                summary: {
+                    bottleneck,
+                    avgLatency,
+                    failureRate
+                }
               };
         } catch (error) {
             console.error(error);
