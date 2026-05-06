@@ -106,4 +106,12 @@ export async function eventRoutes(
       }
     };
   });
+
+  fastify.get("/sessions/:sessionId/events", async (request) => {
+    const { sessionId } = request.params as any;
+
+    const events = await AgentEvent.find({ sessionId });
+
+    return { events };
+  });
 }
