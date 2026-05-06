@@ -96,11 +96,11 @@ export async function eventRoutes(
         avgLatency:
           events.length > 0
             ? `${Math.round(
-                events.reduce(
-                  (sum, e: any) => sum + (e.latency || 0),
-                  0
-                ) / events.length
-              )}ms`
+              events.reduce(
+                (sum, e: any) => sum + (e.latency || 0),
+                0
+              ) / events.length
+            )}ms`
             : "0ms",
         failureRate: `${alerts.length * 10}%`
       }
