@@ -29,7 +29,7 @@ export async function eventRoutes(
       if (loopAlert) alerts.push(loopAlert);
 
       const latencyAlert =
-        detectLatencySpike(eventData);
+        detectLatencySpike(sessionEvents as any);
 
       if (latencyAlert)
         alerts.push(latencyAlert);
@@ -71,41 +71,77 @@ export async function eventRoutes(
     };
   });
 
-  fastify.get("/sessions/:sessionId/alerts", async (request) => {
-    const { sessionId } = request.params as any;
+  fastify.get(
+    "/sessions/:sessionId/alerts",
+    async (request) => {
+      const { sessionId } = request.params as any;
 
-    const events = await AgentEvent.find({
-      sessionId
-    });
+      const events = await AgentEvent.find({
+        sessionId
+      });
 
-    const alerts = [];
+      const alerts = [];
 
-    const latencyAlert = detectLatencySpike(events);
-    if (latencyAlert) alerts.push(latencyAlert);
+      // HIGH — latency
+      const latencyAlert =
+        detectLatencySpike(events);
 
-    const retryAlert = detectRetryStorm(events);
-    if (retryAlert) alerts.push(retryAlert);
-
-    const tokenAlert = detectTokenBurn(events);
-    if (tokenAlert) alerts.push(tokenAlert);
-
-    return {
-      alerts,
-      summary: {
-        bottleneck: alerts.length ? "Detected" : "none",
-        avgLatency:
-          events.length > 0
-            ? `${Math.round(
-              events.reduce(
-                (sum, e: any) => sum + (e.latency || 0),
-                0
-              ) / events.length
-            )}ms`
-            : "0ms",
-        failureRate: `${alerts.length * 10}%`
+      if (latencyAlert) {
+        alerts.push(latencyAlert);
       }
-    };
-  });
+
+      // MEDIUM — retry storm
+      const retryAlert =
+        detectRetryStorm(events);
+
+      if (retryAlert) {
+        alerts.push(retryAlert);
+      }
+
+      // MEDIUM — token burn
+      const tokenAlert =
+        detectTokenBurn(events);
+
+      if (tokenAlert) {
+        alerts.push(tokenAlert);
+      }
+
+      // LOW — loop
+      const loopAlert =
+        detectLoop(
+          sessionId,
+          events as any
+        );
+
+      if (loopAlert) {
+        alerts.push(loopAlert);
+      }
+
+      return {
+        alerts,
+        summary: {
+          bottleneck:
+            alerts.length > 0
+              ? "Detected"
+              : "none",
+
+          avgLatency:
+            events.length > 0
+              ? `${Math.round(
+                  events.reduce(
+                    (sum, e: any) =>
+                      sum + (e.latency || 0),
+                    0
+                  ) / events.length
+                )}ms`
+              : "0ms",
+
+          failureRate:
+            `${alerts.length * 10}%`
+        }
+      };
+    }
+  );
 
   fastify.get("/sessions/:sessionId/events", async (request) => {
     const { sessionId } = request.params as any;
