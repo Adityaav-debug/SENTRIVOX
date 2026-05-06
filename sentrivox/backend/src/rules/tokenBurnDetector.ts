@@ -1,9 +1,5 @@
-export function detectTokenBurn(sessionId: string, events: any[]) {
-  const sessionEvents = events.filter(
-    (event) => event.sessionId === sessionId
-  );
-
-  const totalTokens = sessionEvents.reduce(
+export function detectTokenBurn(events: any[]) {
+  const totalTokens = events.reduce(
     (sum, event) =>
       sum +
       (event.inputTokens || 0) +
@@ -13,9 +9,10 @@ export function detectTokenBurn(sessionId: string, events: any[]) {
 
   if (totalTokens > 10000) {
     return {
-      alert: "High token burn",
-      severity: "medium",
-      totalTokens
+      type: "TOKEN_BURN",
+      severity: "MEDIUM",
+      totalTokens,
+      message: "High token burn detected"
     };
   }
 

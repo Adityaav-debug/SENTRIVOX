@@ -1,11 +1,15 @@
-export function detectRetryStorm(event: any) {
-  if (event.retryCount === undefined || event.retryCount === null) return null;
+export function detectRetryStorm(events: any[]) {
+  if (!events || events.length === 0) return null;
+  
+  const latestEvent = events[events.length - 1];
+  
+  if (latestEvent.retryCount === undefined || latestEvent.retryCount === null) return null;
 
-  if (event.retryCount >= 3) {
+  if (latestEvent.retryCount >= 3) {
     return {
       type: "RETRY_STORM",
       severity: "MEDIUM",
-      message: `${event.retryCount} retries detected`
+      message: `${latestEvent.retryCount} retries detected`
     };
   }
 
