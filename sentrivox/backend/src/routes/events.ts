@@ -81,22 +81,13 @@ export async function eventRoutes(
     const alerts = [];
 
     const latencyAlert = detectLatencySpike(events);
-
-    if (latencyAlert) {
-      alerts.push(latencyAlert);
-    }
+    if (latencyAlert) alerts.push(latencyAlert);
 
     const retryAlert = detectRetryStorm(events);
-
-    if (retryAlert) {
-      alerts.push(retryAlert);
-    }
+    if (retryAlert) alerts.push(retryAlert);
 
     const tokenAlert = detectTokenBurn(events);
-
-    if (tokenAlert) {
-      alerts.push(tokenAlert);
-    }
+    if (tokenAlert) alerts.push(tokenAlert);
 
     return {
       alerts,
