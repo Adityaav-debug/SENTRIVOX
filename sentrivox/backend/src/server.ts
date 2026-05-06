@@ -19,7 +19,7 @@ async function start() {
         console.log("MongoDB connected");
 
         await app.register(cors, {
-            origin: true
+            origin: "*"
         });
 
         // Register routes
