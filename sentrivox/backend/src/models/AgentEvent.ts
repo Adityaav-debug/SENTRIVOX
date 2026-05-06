@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 
 const agentEventSchema = new mongoose.Schema({
   sessionId: String,
+  agentId: String,
+  eventType: String,
 
   model: String,
 
@@ -12,6 +14,8 @@ const agentEventSchema = new mongoose.Schema({
   toolName: String,
 
   latency: Number,
+  retryCount: Number,
+  tokensUsed: Number,
 
   success: Boolean,
 

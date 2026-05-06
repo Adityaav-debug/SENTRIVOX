@@ -35,10 +35,13 @@ export async function eventRoutes(
         alerts.push(latencyAlert);
 
       const retryAlert =
-        detectRetryStorm(sessionEvents as any);
+        detectRetryStorm(
+          sessionEvents as any
+        );
 
-      if (retryAlert)
+      if (retryAlert) {
         alerts.push(retryAlert);
+      }
 
       const tokenAlert =
         detectTokenBurn(sessionEvents as any);
