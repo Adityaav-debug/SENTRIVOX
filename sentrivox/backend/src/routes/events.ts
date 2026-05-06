@@ -56,12 +56,63 @@ export async function eventRoutes(
       };
 
     } catch (error) {
-      reply.status(500);
-
       return {
         success: false,
         error
       };
     }
+  });
+
+  fastify.get("/sessions", async () => {
+    const sessions = await AgentEvent.distinct("sessionId");
+
+    return {
+      sessions
+    };
+  });
+
+  fastify.get("/sessions/:sessionId/alerts", async (request) => {
+    const { sessionId } = request.params as any;
+
+    const events = await AgentEvent.find({
+      sessionId
+    });
+
+    const alerts = [];
+
+    const latencyAlert = detectLatencySpike(events);
+
+    if (latencyAlert) {
+      alerts.push(latencyAlert);
+    }
+
+    const retryAlert = detectRetryStorm(events);
+
+    if (retryAlert) {
+      alerts.push(retryAlert);
+    }
+
+    const tokenAlert = detectTokenBurn(events);
+
+    if (tokenAlert) {
+      alerts.push(tokenAlert);
+    }
+
+    return {
+      alerts,
+      summary: {
+        bottleneck: alerts.length ? "Detected" : "none",
+        avgLatency:
+          events.length > 0
+            ? `${Math.round(
+                events.reduce(
+                  (sum, e: any) => sum + (e.latency || 0),
+                  0
+                ) / events.length
+              )}ms`
+            : "0ms",
+        failureRate: `${alerts.length * 10}%`
+      }
+    };
   });
 }

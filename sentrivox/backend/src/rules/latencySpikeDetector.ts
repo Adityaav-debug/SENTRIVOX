@@ -1,11 +1,15 @@
-export function detectLatencySpike(event: any) {
-  if (!event.latency) return null;
+export function detectLatencySpike(events: any[]) {
+  if (!events || events.length === 0) return null;
 
-  if (event.latency > 3000) {
+  const latestEvent = events[events.length - 1];
+
+  if (!latestEvent.latency) return null;
+
+  if (latestEvent.latency > 3000) {
     return {
       type: "LATENCY_SPIKE",
       severity: "HIGH",
-      message: `Latency spike detected: ${event.latency}ms`
+      message: `Latency spike detected: ${latestEvent.latency}ms`
     };
   }
 
