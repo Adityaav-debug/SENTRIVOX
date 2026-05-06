@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 import { connectDB } from "./config/db";
 import { eventRoutes } from "./routes/events";
+import cors from "@fastify/cors";
 
 const app = Fastify({
     logger: true
@@ -16,6 +17,10 @@ async function start() {
         // Connect MongoDB
         await connectDB();
         console.log("MongoDB connected");
+
+        await app.register(cors, {
+            origin: true
+        });
 
         // Register routes
         app.register(eventRoutes, {
