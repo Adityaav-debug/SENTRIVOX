@@ -27,6 +27,8 @@ const BASE_URL =
 
 console.log("API URL:", BASE_URL);
 
+const WS_URL = BASE_URL.replace(/^http/, "ws").replace("/api/events", "/ws");
+
 const getRootCause = (alertType: string) => {
   switch (alertType) {
     case "LATENCY_SPIKE":
@@ -71,6 +73,31 @@ export default function SentrivoxDashboard() {
   const [events, setEvents] = useState<any[]>([]);
   const [sessions, setSessions] = useState<string[]>([]);
   const [currentSession, setCurrentSession] = useState<string>("loop-test-001");
+  const [liveMessage, setLiveMessage] = useState("");
+
+  useEffect(() => {
+    const socket = new WebSocket("ws://localhost:5000/ws");
+
+    socket.onopen = () => {
+      console.log("WebSocket connected to:", WS_URL);
+    };
+
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("Live event:", data);
+        setLiveMessage(data.message);
+      } catch (err) {
+        console.error("Failed to parse WS message:", err);
+      }
+    };
+
+    socket.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    return () => socket.close();
+  }, []);
 
   const getRecommendation = () => {
     if (alerts.some((a) => a.type === "LATENCY_SPIKE")) {
@@ -350,6 +377,10 @@ export default function SentrivoxDashboard() {
               </ResponsiveContainer>
             </div>
           </div>
+        </div>
+
+        <div className="text-cyan-400 font-medium mb-4">
+          Live Stream: {liveMessage}
         </div>
 
         <div className="bg-slate-900 rounded-2xl p-6 mt-6">
