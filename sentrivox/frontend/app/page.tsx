@@ -76,7 +76,7 @@ export default function SentrivoxDashboard() {
   const [liveMessage, setLiveMessage] = useState("");
 
   useEffect(() => {
-    const socket = new WebSocket("ws://localhost:5000/ws");
+    const socket = new WebSocket("ws://127.0.0.1:5000/ws");
 
     socket.onopen = () => {
       console.log("WebSocket connected to:", WS_URL);
