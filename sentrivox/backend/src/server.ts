@@ -2,9 +2,11 @@ import dotenv from "dotenv";
 dotenv.config();
 import Fastify from "fastify";
 import { connectDB } from "./config/db";
-import { eventRoutes } from "./routes/events";
 import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
+import { eventRoutes } from "./routes/events";
+import { reportRoutes } from "./routes/reports";
+
 import { clients } from "./config/socket";
 
 const app = Fastify({
@@ -33,25 +35,22 @@ async function start() {
                 "/ws",
                 { websocket: true },
                 (connection) => {
-                    console.log("Client connected to WebSocket");
+                    console.log("WebSocket client connected");
+                    clients.add(connection.socket);
 
-                    setInterval(() => {
-                        connection.send(
-                            JSON.stringify({
-                                type: "LIVE_EVENT",
-                                timestamp: new Date(),
-                                message: "Agent telemetry streaming..."
-                            })
-                        );
-                    }, 3000);
+                    connection.socket.on("close", () => {
+                        console.log("WebSocket client disconnected");
+                        clients.delete(connection.socket);
+                    });
                 }
             );
         });
 
         // Register routes
-        app.register(eventRoutes, {
-            prefix: "/api/events"
-        });
+        app.register(eventRoutes);
+        app.register(reportRoutes);
+
+
 
         const PORT = Number(process.env.PORT);
 

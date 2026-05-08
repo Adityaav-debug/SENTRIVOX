@@ -12,8 +12,9 @@ type AgentEvent = {
 
 export async function observeAgent(event: AgentEvent) {
   try {
+    console.log("Sending to:", "http://localhost:5000/api/events");
     await axios.post(
-      "https://sentrivox-production.up.railway.app/events",
+      "http://localhost:5000/api/events",
       event
     );
 

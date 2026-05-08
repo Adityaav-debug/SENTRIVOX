@@ -22,8 +22,7 @@ import {
 } from "lucide-react";
 
 const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "https://reliable-recreation-production-f7f1.up.railway.app/api/events";
+  "http://localhost:5000/api/events";
 
 console.log("API URL:", BASE_URL);
 
@@ -76,7 +75,7 @@ export default function SentrivoxDashboard() {
   const [liveMessage, setLiveMessage] = useState("");
 
   useEffect(() => {
-    const socket = new WebSocket("ws://127.0.0.1:5000/ws");
+    const socket = new WebSocket(WS_URL);
 
     socket.onopen = () => {
       console.log("WebSocket connected to:", WS_URL);
@@ -85,8 +84,15 @@ export default function SentrivoxDashboard() {
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log("Live event:", data);
-        setLiveMessage(data.message);
+        console.log("WebSocket event:", data);
+
+        if (data.type && data.severity) {
+          // It's an alert with RCA
+          setAlerts(prev => [data, ...prev].slice(0, 50));
+          setLiveMessage(`New alert: ${data.type}`);
+        } else if (data.message) {
+          setLiveMessage(data.message);
+        }
       } catch (err) {
         console.error("Failed to parse WS message:", err);
       }
@@ -113,9 +119,22 @@ export default function SentrivoxDashboard() {
   };
 
   useEffect(() => {
-    fetch(`${BASE_URL}/sessions`)
-      .then((res) => res.json())
-      .then((data) => setSessions(data.sessions || []));
+    const fetchSessions = () => {
+      fetch(`${BASE_URL}/sessions`)
+        .then((res) => res.json())
+        .then((data) => {
+          setSessions(data.sessions || []);
+        });
+    };
+
+    fetchSessions();
+
+    const interval = setInterval(() => {
+      fetchSessions();
+    }, 3000);
+
+    return () => clearInterval(interval);
+
   }, []);
 
   const fetchData = () => {
@@ -157,7 +176,7 @@ export default function SentrivoxDashboard() {
     },
     {
       title: "Token Waste Prevented",
-      value: "$18.4K",
+      value: "$482",
       subtitle: "Estimated monthly savings",
       icon: DollarSign,
     },
@@ -169,7 +188,7 @@ export default function SentrivoxDashboard() {
     },
     {
       title: "Sessions Analyzed",
-      value: "12.8K",
+      value: "128",
       subtitle: "Across customer environments",
       icon: Cpu,
     },
@@ -232,8 +251,10 @@ export default function SentrivoxDashboard() {
     id: index,
     type: alert.type,
     severity: alert.severity,
-    message: alert.message
+    message: alert.message,
+    rootCause: alert.rootCause
   }));
+
 
   return (
     <div className="min-h-screen bg-slate-950 text-white p-8">
@@ -341,40 +362,52 @@ export default function SentrivoxDashboard() {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
             <h2 className="text-xl font-semibold mb-6">Failure Trend</h2>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={trendData}>
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="latency" strokeWidth={3} />
-                </LineChart>
-              </ResponsiveContainer>
+            <div className="h-64 flex items-center justify-center">
+              {(!events || events.length === 0) ? (
+                <div className="text-slate-400">
+                  No monitoring data yet
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={trendData}>
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="latency" strokeWidth={3} />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
 
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
             <h2 className="text-xl font-semibold mb-6">Severity Distribution</h2>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={severityData}
-                    dataKey="value"
-                    outerRadius={80}
-                  >
-                    {severityData.map((entry, index) => (
-                      <Cell
-                        key={index}
-                        fill={COLORS[index]}
-                      />
-                    ))}
-                  </Pie>
+            <div className="h-64 flex items-center justify-center">
+              {(!events || events.length === 0) ? (
+                <div className="text-slate-400">
+                  No severity data yet
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={severityData}
+                      dataKey="value"
+                      outerRadius={80}
+                    >
+                      {severityData.map((entry, index) => (
+                        <Cell
+                          key={index}
+                          fill={COLORS[index]}
+                        />
+                      ))}
+                    </Pie>
 
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
         </div>
@@ -404,8 +437,20 @@ export default function SentrivoxDashboard() {
                   </p>
 
                   <p className="text-blue-400 text-sm mt-2">
-                    Root Cause: {getRootCause(alert.type)}
+                    Root Cause: {alert.rootCause?.diagnosis || getRootCause(alert.type)}
                   </p>
+
+                  {alert.rootCause && (
+                    <div className="mt-2 text-sm space-y-1">
+                      <p className="text-slate-400">
+                        Confidence: {alert.rootCause.confidence}%
+                      </p>
+                      <p className="text-indigo-400 font-medium">
+                        Fix: {alert.rootCause.recommendation}
+                      </p>
+                    </div>
+                  )}
+
 
                   <p className="text-gray-400 text-xs mt-2">
                     {new Date().toLocaleTimeString()}
@@ -426,34 +471,40 @@ export default function SentrivoxDashboard() {
           </h2>
 
           <div className="space-y-3">
-            {events.map((event, index) => {
-              const eventInfo = classifyEvent(event.latency);
+            {(!events || events.length === 0) ? (
+              <div className="text-slate-400">
+                No session replay available
+              </div>
+            ) : (
+              events.map((event, index) => {
+                const eventInfo = classifyEvent(event.latency);
 
-              return (
-                <div
-                  key={index}
-                  className="border-l-2 border-blue-500 pl-4 mb-4"
-                >
-                  <p className="text-gray-400 text-sm">
-                    {new Date(
-                      event.timestamp
-                    ).toLocaleTimeString()}
-                  </p>
+                return (
+                  <div
+                    key={index}
+                    className="border-l-2 border-blue-500 pl-4 mb-4"
+                  >
+                    <p className="text-gray-400 text-sm">
+                      {new Date(
+                        event.timestamp
+                      ).toLocaleTimeString()}
+                    </p>
 
-                  <p className={eventInfo.color}>
-                    {eventInfo.label}
-                  </p>
+                    <p className={eventInfo.color}>
+                      {eventInfo.label}
+                    </p>
 
-                  <p className="text-white">
-                    {eventInfo.message}
-                  </p>
+                    <p className="text-white">
+                      {eventInfo.message}
+                    </p>
 
-                  <p className="text-blue-400 text-sm">
-                    Latency: {event.latency}ms
-                  </p>
-                </div>
-              );
-            })}
+                    <p className="text-blue-400 text-sm">
+                      Latency: {event.latency}ms
+                    </p>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
 
@@ -465,17 +516,17 @@ export default function SentrivoxDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <p className="text-slate-400 text-sm">Primary Tool Bottleneck</p>
-              <p className="text-xl font-semibold mt-2">{alertData?.summary?.bottleneck || "none"}</p>
+              <p className="text-xl font-semibold mt-2">{(!events || events.length === 0) ? "Waiting for telemetry..." : (alertData?.summary?.bottleneck || "none")}</p>
             </div>
 
             <div>
               <p className="text-slate-400 text-sm">Average Session Latency</p>
-              <p className="text-xl font-semibold mt-2">{alertData?.summary?.avgLatency || "0s"}</p>
+              <p className="text-xl font-semibold mt-2">{(!events || events.length === 0) ? "Waiting for telemetry..." : (alertData?.summary?.avgLatency || "0s")}</p>
             </div>
 
             <div>
               <p className="text-slate-400 text-sm">Failure Rate</p>
-              <p className="text-xl font-semibold mt-2">{alertData?.summary?.failureRate || "0%"}</p>
+              <p className="text-xl font-semibold mt-2">{(!events || events.length === 0) ? "Waiting for telemetry..." : (alertData?.summary?.failureRate || "0%")}</p>
             </div>
           </div>
 

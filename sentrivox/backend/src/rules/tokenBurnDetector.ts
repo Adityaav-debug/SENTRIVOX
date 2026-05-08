@@ -1,9 +1,13 @@
-export function detectTokenBurn(events: any[]) {
+export function detectTokenBurn(events: any[] = []) {
+  if (!Array.isArray(events)) {
+    return null;
+  }
+
   const totalTokens = events.reduce(
     (sum, event) =>
       sum +
-      (event.inputTokens || 0) +
-      (event.outputTokens || 0),
+      (event?.inputTokens || 0) +
+      (event?.outputTokens || 0),
     0
   );
 
@@ -12,7 +16,7 @@ export function detectTokenBurn(events: any[]) {
       type: "TOKEN_BURN",
       severity: "MEDIUM",
       totalTokens,
-      message: "High token burn detected"
+      message: `High token usage: ${totalTokens} tokens burned`
     };
   }
 

@@ -1,16 +1,25 @@
 import { observeAgent } from "./index";
 
-observeAgent({
-    sessionId: "session_001",
+async function simulateLoop() {
+  for (let i = 0; i < 8; i++) {
+    await observeAgent({
+      sessionId: "loop-test-001",
 
-    model: "gpt-4",
+      model: "gpt-4",
 
-    inputTokens: 1200,
-    outputTokens: 450,
+      inputTokens: 1000,
 
-    toolName: "search",
+      outputTokens: 400,
 
-    latency: 3400,
+      toolName: "search",
 
-    success: true
-});
+      latency: 1200,
+
+      success: true
+    });
+  }
+
+  console.log("Loop test sent");
+}
+
+simulateLoop();

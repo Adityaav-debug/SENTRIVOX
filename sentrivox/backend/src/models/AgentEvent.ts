@@ -1,33 +1,41 @@
 import mongoose from "mongoose";
 
-const agentEventSchema = new mongoose.Schema({
-  sessionId: String,
-  agentId: String,
-  eventType: String,
+delete mongoose.models.AgentEvent;
 
-  model: String,
+const agentEventSchema =
+  new mongoose.Schema({
+    sessionId: String,
+    agentId: String,
+    eventType: String,
 
-  inputTokens: Number,
+    model: String,
 
-  outputTokens: Number,
+    inputTokens: Number,
+    outputTokens: Number,
 
-  toolName: String,
+    tokensUsed: Number,
 
-  latency: Number,
-  retryCount: Number,
-  tokensUsed: Number,
+    costUsd: Number,
 
-  success: Boolean,
+    toolName: String,
 
-  error: String,
+    latency: Number,
+    retryCount: Number,
 
-  timestamp: {
-    type: Date,
-    default: Date.now
-  }
-});
+    success: Boolean,
 
-export const AgentEvent = mongoose.model(
-  "AgentEvent",
-  agentEventSchema
-);
+    error: String,
+
+    timestamp: {
+      type: Date,
+      default: Date.now
+    }
+  }, {
+    strict: false
+  });
+
+export const AgentEvent =
+  mongoose.model(
+    "AgentEventV2",
+    agentEventSchema
+  );
