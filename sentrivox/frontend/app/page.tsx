@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 
 const BASE_URL =
-  "http://localhost:5000/api/events";
+  process.env.NEXT_PUBLIC_API_URL!;
 
 console.log("API URL:", BASE_URL);
 
