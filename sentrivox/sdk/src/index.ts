@@ -1,5 +1,7 @@
 import axios from "axios";
 
+const BASE_URL = process.env.SENTRIVOX_URL!;
+
 type AgentEvent = {
   sessionId: string;
   model: string;
@@ -12,9 +14,9 @@ type AgentEvent = {
 
 export async function observeAgent(event: AgentEvent) {
   try {
-    console.log("Sending to:", "http://localhost:5000/api/events");
+    console.log("Sending to:", `${BASE_URL}/api/events`);
     await axios.post(
-      "http://localhost:5000/api/events",
+      `${BASE_URL}/api/events`,
       event
     );
 

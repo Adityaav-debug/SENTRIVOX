@@ -1,5 +1,7 @@
 import axios from "axios";
 
+const BASE_URL = process.env.SENTRIVOX_URL!;
+
 async function run() {
   const payload = {
     sessionId: "test-session-001",
@@ -13,7 +15,7 @@ async function run() {
   };
 
   try {
-    const res = await axios.post("http://localhost:5000/events", payload);
+    const res = await axios.post(`${BASE_URL}/api/events`, payload);
     console.log("Response:", res.data);
   } catch (error) {
     console.error("Error sending event:", error);
